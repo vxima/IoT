@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # compile the C program
-g++ -o f.exe f_aloha.c
+g++ -o f.exe f_aloha.cpp
 
 # check if compilation was successful
 if [ $? -ne 0 ]; then
