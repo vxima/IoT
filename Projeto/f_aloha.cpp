@@ -50,7 +50,7 @@ class QTable{
         void updateQValue(int slot_idx){
             int K = state[slot_idx].second;
             int  R = 1<<K; // R=1<<K
-            if(true){
+            if(true){ //sucesso
                 state[slot_idx].first = state[slot_idx].first + R*y; // Q=Q+γR;
                 state[slot_idx].second = computeK(K);
             }
@@ -84,9 +84,11 @@ class Node{
     public:
         int node_id;
         QTable table;
+        vector<int> slotTransmiting;
         Node(int id){
             node_id = id;
             table = QTable(id);
+            fill(slotTransmiting.begin() , slotTransmiting.end() , 0); //inicializando qual slot ta transmitindo
         }
 };
 
