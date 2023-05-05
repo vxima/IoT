@@ -10,4 +10,4 @@ if [ $? -ne 0 ]; then
 fi
 
 # run the program
-#./f.exe
+./f_aloha.exe

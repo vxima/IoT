@@ -6,12 +6,12 @@
 
 using namespace std;
 
-int N = 40;// number of node
-int S = 40;  // number of slots in one frame
-
+const int N = 100;// number of node
+const int S = 100;  // number of slots in one frame
+const int F = 10; //numbers of frames
  //inicializar hiperparametros
-const double y = 1.0;
-const double e = 0.01;
+const double y = 0.5;
+const double e = 0.05;
 const double threshold = 3.0;
 
 // seed random number generator
@@ -187,8 +187,7 @@ int main() {
     //cout << "Slots inicias: " << endl;
     //printSlotArray();
     //cout << "Slots atualizados: " << endl;
-    while(!converged()){ //nao convergiu
-         // print which slots are used
+    while(cont <F){ 
         cont++;
         for(int node_id = 0; node_id<N;node_id++){
             network[node_id].table.updateQValue(network[node_id].selectedSlot);
@@ -200,9 +199,9 @@ int main() {
         metricFrame();
     }
     cout << "Case for " <<  N << " Nodes" << endl;
-    cout /*<< "Success Rate: "*/ <<(double) successCount/(totalSlots) << endl;
-    cout /*<< "Colision Rate: "*/ <<(double) colisionCount/(totalSlots) << endl;
-    cout /*<< "Void Rate: "*/ <<(double) voidCount/(totalSlots) << endl;
-    cout /*<< "Convergence Time(iterations): "*/ << cont <<  endl;
+    cout << "Success Rate: " <<(double) successCount/(totalSlots) << endl;
+    cout << "Colision Rate: " <<(double) colisionCount/(totalSlots) << endl;
+    cout << "Void Rate: " <<(double) voidCount/(totalSlots) << endl;
+    cout << "Convergence Time(iterations): " << cont <<  endl;
     return 0;
 }
