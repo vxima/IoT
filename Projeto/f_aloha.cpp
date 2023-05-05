@@ -6,8 +6,8 @@
 
 using namespace std;
 
-const int N = 10;// number of node
-const int S = 10 ;  // number of slots in one frame
+int N = 40;// number of node
+int S = 40;  // number of slots in one frame
 
  //inicializar hiperparametros
 const double y = 1.0;
@@ -21,7 +21,7 @@ uniform_real_distribution<double> dis(0.0, 1.0);
 
 int successCount = 0;
 int colisionCount = 0; //começa vazio
-int voidCount =0;
+int voidCount = 0;
 int totalSlots = 0;
 vector<int> slotTransmiting(S, 0);
 
@@ -155,11 +155,6 @@ void printSlotArray(){
     cout << endl;
 }
 
-float randomFloat(){
-    return (float)(rand()) / (float)(RAND_MAX);
-}
-
-
 
 void updateSlotTransmiting(vector<Node> network){
     fill(slotTransmiting.begin(), slotTransmiting.end(), 0);
@@ -178,7 +173,7 @@ bool converged(){
     return true;
 }
 int main() {
-   
+    
     // Create network
     int cont =0;
     srand(1234);
@@ -205,9 +200,9 @@ int main() {
         metricFrame();
     }
     cout << "Case for " <<  N << " Nodes" << endl;
-    cout << "Success Rate: " <<(double) successCount/(totalSlots) << endl;
-    cout << "Colision Rate: " <<(double) colisionCount/(totalSlots) << endl;
-    cout << "Void Rate: " <<(double) voidCount/(totalSlots) << endl;
-    cout << "Convergence Time(iterations): " << cont <<  endl;
+    cout /*<< "Success Rate: "*/ <<(double) successCount/(totalSlots) << endl;
+    cout /*<< "Colision Rate: "*/ <<(double) colisionCount/(totalSlots) << endl;
+    cout /*<< "Void Rate: "*/ <<(double) voidCount/(totalSlots) << endl;
+    cout /*<< "Convergence Time(iterations): "*/ << cont <<  endl;
     return 0;
 }

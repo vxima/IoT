@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # compile the C program
-g++ -o f.exe f_aloha.cpp
+g++ -o f_aloha.exe f_aloha.cpp
 
 # check if compilation was successful
 if [ $? -ne 0 ]; then
@@ -10,4 +10,4 @@ if [ $? -ne 0 ]; then
 fi
 
 # run the program
-./f.exe
+#./f.exe
