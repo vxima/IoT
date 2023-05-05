@@ -6,21 +6,49 @@
 
 using namespace std;
 
-#define N 4 // number of node
-#define F 10 // numbers of frames
-#define S 5  // number of slots in one frame
+const int N = 4;// number of node
+const int F = 10; // numbers of frames
+const int S = 6 ;  // number of slots in one frame
 
-#define y 1.0;
-#define e 0.01;
-#define threshold  3.0;
+ //inicializar hiperparametros
+const double y = 1.0;
+const double e = 0.1;
+const double threshold = 3.0;
 
 // seed random number generator
 random_device rd; 
 mt19937 gen(rd());
 uniform_real_distribution<double> dis(0.0, 1.0);
-vector<int> transmition_Node(N, 0); // 0: idle  , 1: transmition
 
-//auxiliares
+int successCount = 0;
+int colisionCount = 0; //começa vazio
+int voidCount =0;
+int totalSlots = 0;
+vector<int> slotTransmiting(S, 0);
+
+
+int checkTransmition(int slot_id){
+    if(slotTransmiting[slot_id] == 1){
+        return 1; //sucesso
+    } else if(slotTransmiting[slot_id] > 1){
+        return 2; //colisao
+    } else {
+        return 0; // vazio
+    }
+}
+void metricFrame(){
+    for(int i=0;i<S;i++){
+        if(slotTransmiting[i] == 1){
+            successCount++;
+        } else if(slotTransmiting[i] > 1){
+            colisionCount++;
+        } else{
+            voidCount++;
+        }
+        totalSlots++;
+    }
+
+}
 double randP(){ //numero randomico entre 0.0 e 1.0
     return dis(gen);
 }
@@ -35,6 +63,28 @@ int max_index(const vector<pair<double, int>>& vec) { //return the index of the 
         [](const auto& p1, const auto& p2) { return p1.first < p2.first; });
     return distance(vec.begin(), max_it);
 }
+
+int max_value_index(vector<pair<double, int>>& values) {
+    int max_idx = 0;
+    double max_val = values[0].first;
+    vector<int> max_indices = {0};
+    for (int i = 1; i < values.size(); i++) {
+        if (values[i].first > max_val) {
+            max_indices = {i};
+            max_idx = i;
+            max_val = values[i].first;
+        } else if (values[i].first == max_val) {
+            max_indices.push_back(i);
+        }
+    }
+    if (max_indices.size() > 1) {
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> dis(0, max_indices.size() - 1);
+        max_idx = max_indices[dis(gen)];
+    }
+    return max_idx;
+}
 class QTable{
     //cada table vai ter o Q-Value e o K de cada slot
     public:    
@@ -48,33 +98,35 @@ class QTable{
         }
 
         void updateQValue(int slot_idx){
+            int check = checkTransmition(slot_idx);
             int K = state[slot_idx].second;
             int  R = 1<<K; // R=1<<K
-            if(true){ //sucesso
+            if(check == 1){ //sucesso
                 state[slot_idx].first = state[slot_idx].first + R*y; // Q=Q+γR;
                 state[slot_idx].second = computeK(K);
             }
-            else if(false){ //colisao
+            else if(check == 2){ //colisao
                 state[slot_idx].first = state[slot_idx].first - R*y; // Q=Q-γR;
                 state[slot_idx].second = computeK(K);
             }
         }
 
-        int selectSlot(){
-            int slot;
-            if(true){ //colisao
-                if( randP() < 0.01){ // p<e
+        int selectSlot(int slot_id){
+            int slot = slot_id;
+            int check = checkTransmition(slot_id);
+            if(check == 2){ //colisao
+                if( randP() < e){ // p<e
                     //selectionar random idle slot
                     slot =  rand() % S; 
                 }
                 else{
                     //select a random slot with highest Q-value
-                    slot =  max_index(state);
+                    slot =  max_value_index(state);
                 }
             } 
             else{
                 //select a random slot with highest Q-value
-                slot =  max_index(state);
+                slot =  max_value_index(state);
             }
             return slot;
         }
@@ -84,33 +136,72 @@ class Node{
     public:
         int node_id;
         QTable table;
-        vector<int> slotTransmiting;
+        int selectedSlot;
         Node(int id){
             node_id = id;
             table = QTable(id);
-            fill(slotTransmiting.begin() , slotTransmiting.end() , 0); //inicializando qual slot ta transmitindo
+            selectedSlot = rand() % S; 
         }
 };
 
 
+
+
+
+
+
+
+//auxiliares
+void printSlotArray(){
+    for (auto elem : slotTransmiting) cout << elem << " ";
+    cout << endl;
+}
+
 float randomFloat(){
     return (float)(rand()) / (float)(RAND_MAX);
 }
+
+
+
+void updateSlotTransmiting(vector<Node> network){
+    fill(slotTransmiting.begin(), slotTransmiting.end(), 0);
+    for(int no = 0 ; no < N ; no++){
+        slotTransmiting[network[no].selectedSlot]++;
+    }
+
+}
+
 int main() {
-    //inicializar hiperparametros
-    
-
-    srand(time(NULL)); // seed random number generator
-
+   
     // Create network
+    int Initial_SlotSeleted = 0;
     vector<Node> network;
-    for(int i=1; i<=N;i++){
+    vector<int> nodeTransmitingSlotIdx;
+    for(int i=0; i<N;i++){
         Node node = Node(i);
+        //select random slot 
         network.push_back(node);
     }
+    updateSlotTransmiting(network); 
     // loop de iteraçoes
-    for(int frame = 0; frame<F;frame++){
-
+    cout << "Slots inicias: " << endl;
+    printSlotArray();
+    cout << "Slots atualizados: " << endl;
+    for(int frame = 1; frame<=F;frame++){
+         // print which slots are used
+        
+        for(int node_id = 0; node_id<N;node_id++){
+            network[node_id].table.updateQValue(network[node_id].selectedSlot);
+            network[node_id].selectedSlot = network[node_id].table.selectSlot(network[node_id].selectedSlot); //atualiza slot escolhido pelo nó
+    
+        }
+        updateSlotTransmiting(network); 
+        printSlotArray();
+        metricFrame();
     }
+
+    cout << "Success Rate: " <<(double) successCount/(totalSlots) << endl;
+    cout << "Colision Rate: " <<(double) colisionCount/(totalSlots) << endl;
+    cout << "Void Rate: " <<(double) voidCount/(totalSlots) << endl;
     return 0;
 }
