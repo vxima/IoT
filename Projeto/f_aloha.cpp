@@ -6,13 +6,12 @@
 
 using namespace std;
 
-const int N = 4;// number of node
-const int F = 10; // numbers of frames
-const int S = 6 ;  // number of slots in one frame
+const int N = 10;// number of node
+const int S = 10 ;  // number of slots in one frame
 
  //inicializar hiperparametros
 const double y = 1.0;
-const double e = 0.1;
+const double e = 0.01;
 const double threshold = 3.0;
 
 // seed random number generator
@@ -25,7 +24,6 @@ int colisionCount = 0; //começa vazio
 int voidCount =0;
 int totalSlots = 0;
 vector<int> slotTransmiting(S, 0);
-
 
 int checkTransmition(int slot_id){
     if(slotTransmiting[slot_id] == 1){
@@ -93,7 +91,7 @@ class QTable{
         QTable() : node_idx(0), state(S, make_pair(0.0, 0)) {}
         QTable(int id) : node_idx(id){
             pair<double, int> pa(0.0 , 0); // Q-value e K
-            state = vector<pair<double, int>>(F , pa); //array de 5 slots com Q-value e K
+            state = vector<pair<double, int>>(S , pa); //array de 5 slots com Q-value e K
             node_idx = id;
         }
 
@@ -171,37 +169,45 @@ void updateSlotTransmiting(vector<Node> network){
 
 }
 
+bool converged(){
+    for(int i=0; i<S;i++){
+        if(slotTransmiting[i] != 1){
+            return false;
+        }
+    }
+    return true;
+}
 int main() {
    
     // Create network
-    int Initial_SlotSeleted = 0;
+    int cont =0;
+    srand(1234);
     vector<Node> network;
-    vector<int> nodeTransmitingSlotIdx;
     for(int i=0; i<N;i++){
         Node node = Node(i);
-        //select random slot 
         network.push_back(node);
-    }
+    }   
     updateSlotTransmiting(network); 
     // loop de iteraçoes
-    cout << "Slots inicias: " << endl;
-    printSlotArray();
-    cout << "Slots atualizados: " << endl;
-    for(int frame = 1; frame<=F;frame++){
+    //cout << "Slots inicias: " << endl;
+    //printSlotArray();
+    //cout << "Slots atualizados: " << endl;
+    while(!converged()){ //nao convergiu
          // print which slots are used
-        
+        cont++;
         for(int node_id = 0; node_id<N;node_id++){
             network[node_id].table.updateQValue(network[node_id].selectedSlot);
             network[node_id].selectedSlot = network[node_id].table.selectSlot(network[node_id].selectedSlot); //atualiza slot escolhido pelo nó
     
         }
         updateSlotTransmiting(network); 
-        printSlotArray();
+        //printSlotArray();
         metricFrame();
     }
-
+    cout << "Case for " <<  N << " Nodes" << endl;
     cout << "Success Rate: " <<(double) successCount/(totalSlots) << endl;
     cout << "Colision Rate: " <<(double) colisionCount/(totalSlots) << endl;
     cout << "Void Rate: " <<(double) voidCount/(totalSlots) << endl;
+    cout << "Convergence Time(iterations): " << cont <<  endl;
     return 0;
 }
